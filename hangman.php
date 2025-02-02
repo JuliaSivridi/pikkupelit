@@ -35,7 +35,7 @@
 require_once "connect.php";
 $dblink = mysqli_connect($dbhost, $dbuser, $dbpswd, $dbname);
 $tbname .= $suffix["hng"];
-$bottoken .= $tokens["hng"];
+$bottoken = $tokens["hng"];
 require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
@@ -181,7 +181,7 @@ function draw_inline_kbd($letters, $isActive, $lang_ul, $rowSize = 8) {
 			$keyboard[] = $row; $row = [];
 		}
 	} if (!empty($row)) $keyboard[] = $row;
-	$keyboard[] = [["text" => $lang_ul["hang-one"], "callback_data" => "open-one"]];
+	$keyboard[] = [["text" => $lang_ul["hang-one"], "callback_data" => ($isActive ? "open-one" : "-")]];
 	return json_encode(["inline_keyboard" => $keyboard]);
 }
 
@@ -320,7 +320,8 @@ if (isset($input["callback_query"])) {
 
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
-				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-hang"], 
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-hang"]
+					.$lang[$ul]["contact"].$lang[$ul]["github"], 
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}

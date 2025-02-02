@@ -6,17 +6,17 @@
 
 <?php
 require_once "connect.php";
+$dblink = mysqli_connect($dbhost, $dbuser, $dbpswd, $dbname);
 // $tbname .= $suffix["rnd"];
 // $tbname .= $suffix["rps"];
 // $tbname .= $suffix["hng"];
 // $tbname .= $suffix["bjk"];
 // $tbname .= $suffix["npz"];
-$tbname .= $suffix["ttt"];
+// $tbname .= $suffix["ttt"];
 // $tbname .= $suffix["msw"];
 // $tbname .= $suffix["fir"];
 // $tbname .= $suffix["bts"];
 
-$dblink = mysqli_connect($dbhost, $dbuser, $dbpswd, $dbname);
 // $dbdrop = "DROP TABLE `".$tbname."`";
 // if (mysqli_query($dblink, $dbdrop))
 // 	echo "<br>Table dropped";
@@ -39,31 +39,31 @@ $dblink = mysqli_connect($dbhost, $dbuser, $dbpswd, $dbname);
 // `start` BOOLEAN, `board4` TEXT,
 // `cstack` TEXT, `turn` BOOLEAN, `ccover` TEXT, `csea` TEXT, `clives` TINYINT, `ucover` TEXT, `usea` TEXT, `ulives` TINYINT, 
 
-echo "<br>";
-$dbquery = "select * from ".$tbname;
-if ($result = mysqli_query($dblink, $dbquery)) {
-	echo "<table>";
-    while ($row = mysqli_fetch_assoc($result)) {
-        echo "<tr><td>[".$row["chat_id"]."]"."<td>".$row["msg_id"]
-			."<td>".$row["user_name"]."<td>".$row["user_lang"];
-		// echo "<td>".$row["random"];
-		// echo "<td>".$row["complex"];
-		// echo "<td>".$row["size"];
-		// echo "<td>".$row["start"];
-		// echo "<td>".$row["word"]."<td>".$row["guess"];
-		// echo "<td>".$row["lives"]."<td>".$row["letters"];
-		// echo "<td>".$row["ccost"]."<td>".$row["ucost"]."<td>".$row["ccards"].$row["ucards"];
-		// echo "<td>".$row["isfirst"]."<td>".$row["isdig"]."<td>".$row["minefield"]."<td>".$row["cover"];
-		// echo "<td>".$row["nline"];
-		echo "<td>".$row["xoline"];
-		// echo "<td>".$row["board4"];
-		// echo "<td>".$row["turn"];
-		// echo "<td>".$row["ulives"]."<td>".$row["usea"]."<td>".$row["ucover"];
-		// echo "<td>".$row["cstack"]."<td>"."<td>".$row["csea"]."<td>".$row["clives"];
-	} echo "</table>";
-	mysqli_free_result($result);
+foreach ($suffix as $sfx) {
+	echo "<br>$sfx";
+	$dbquery = "select * from ".$tbname.$sfx;
+	if ($result = mysqli_query($dblink, $dbquery)) {
+		echo "<table>";
+		while ($row = mysqli_fetch_assoc($result)) {
+			echo "<tr>";
+			// echo "<td>[".$row["chat_id"]."]"."<td>".$row["msg_id"];
+			echo "<td>".$row["user_name"]."<td>".$row["user_lang"];
+			if (isset($row["random"])) echo "<td>".$row["random"];
+			if (isset($row["complex"])) echo "<td>".$row["complex"];
+			if (isset($row["word"])) echo "<td>".$row["word"]."<td>".$row["guess"]."<td>".$row["lives"]."<td>".$row["letters"];
+			if (isset($row["ccost"])) echo "<td>".$row["ccost"]."<td>".$row["ucost"]."<td>".$row["ccards"].$row["ucards"];
+			if (isset($row["isfirst"])) echo "<td>".$row["isfirst"]."<td>".$row["isdig"]."<td>".$row["minefield"]."<td>".$row["cover"];
+			if (isset($row["size"])) echo "<td>".$row["size"];
+			if (isset($row["start"])) echo "<td>".$row["start"];
+			if (isset($row["nline"])) echo "<td>".$row["nline"];
+			if (isset($row["xoline"])) echo "<td>".$row["xoline"];
+			if (isset($row["board4"])) echo "<td>".$row["board4"];
+			if (isset ($row["turn"])) echo "<td>".$row["turn"]."<td>".$row["ulives"]."<td>".$row["usea"]."<td>".$row["ucover"]
+				."<td>".$row["cstack"]."<td>"."<td>".$row["csea"]."<td>".$row["clives"];
+		} echo "</table>";
+		mysqli_free_result($result);
+	}
 }
-
 // file_put_contents("input.log", print_r($input, true));
 // file_put_contents("output.log", "\nCheck:" . json_encode($check, JSON_UNESCAPED_UNICODE), FILE_APPEND);
 mysqli_close($dblink); ?></body></html>

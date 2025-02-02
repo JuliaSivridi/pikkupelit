@@ -35,7 +35,7 @@
 require_once "connect.php";
 $dblink = mysqli_connect($dbhost, $dbuser, $dbpswd, $dbname);
 $tbname .= $suffix["bts"];
-$bottoken .= $tokens["bts"];
+$bottoken = $tokens["bts"];
 require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
@@ -48,17 +48,27 @@ function placeShips($bsize = 7) {
 	$board = array_fill(0, $bsize, array_fill(0, $bsize, 0));
 	$ships = [4 => 1, 3 => 2, 2 => 3, 1 => 4]; // ship size => count of ships
 	foreach ($ships as $ssize => $scount)
-		for ($i = 0; $i < $scount; $i++) {
-			$attempts = 0;
-			while ($attempts < 100) {
-				$d = rand(0, 1); // 0 — hor, 1 — vert
-				$x = rand(0, $bsize-1);
-				$y = rand(0, $bsize-1);
-				if (canPlaceShip($board, $x, $y, $ssize, $d)) {
-					placeShip($board, $x, $y, $ssize, $d);
-					break;
-				}
-			} $attempts++;
+		if ($ssize > 1)	
+			for ($i = 0; $i < $scount; $i++) {
+				$attempts = 0;
+				while ($attempts < 100) {
+					$d = rand(0, 1); // 0 — hor, 1 — vert
+					$x = rand(0, $bsize-1);
+					$y = rand(0, $bsize-1);
+					if (canPlaceShip($board, $x, $y, $ssize, $d)) {
+						placeShip($board, $x, $y, $ssize, $d);
+						break;
+					}
+				} $attempts++;
+			}
+		else {
+			$freeCells = getAvailableSingleShipCells($board);
+			shuffle($freeCells);
+			for ($i = 0; $i < $scount && !empty($freeCells); $i++) {
+				[$x, $y] = array_pop($freeCells);
+				$board[$x][$y] = 2;
+				$freeCells = array_values(array_filter($freeCells, fn($cell) => !isTouching($board, $cell[0], $cell[1])));
+			}
 		}
 	return $board;
 } function canPlaceShip($board, $x, $y, $size, $d) {
@@ -80,6 +90,21 @@ function placeShips($bsize = 7) {
 		$ny = $y + ($d === 0 ? $i : 0); // hor
 		$board[$nx][$ny] = 2;
 	}
+} function getAvailableSingleShipCells($board) {
+	$bsize = count($board);
+	$candidates = [];
+	for ($x = 0; $x < $bsize; $x++)
+		for ($y = 0; $y < $bsize; $y++)
+			if ($board[$x][$y] === 0 && !isTouching($board, $x, $y))
+				$candidates[] = [$x, $y];
+	return $candidates;
+} function isTouching($board, $x, $y) {
+	$bsize = count($board);
+	foreach ([[-1, 0], [1, 0], [0, -1], [0, 1]] as [$dx, $dy]) {
+		$tx = $x + $dx; $ty = $y + $dy;
+		if ($tx >= 0 && $tx < $bsize && $ty >= 0 && $ty < $bsize && $board[$tx][$ty] === 2)
+			return true;
+	} return false;
 }
 
 // game message
@@ -340,7 +365,8 @@ if (isset($input["callback_query"])) {
 
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
-				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-sea"], 
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-sea"]
+					.$lang[$ul]["contact"].$lang[$ul]["github"], 
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}

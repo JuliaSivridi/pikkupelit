@@ -3,7 +3,9 @@
     "hi1": "Hello, ", "hi2": " 😋", 
     "main-back": "🔙 Main menu", "main-ttl": "🩶 Main menu", 
     "menu-hlp": "ℹ️ Help", "help": "ℹ️ There could be some help here", 
-    "menu-links": "🕹 Games", "game-links": "🕹 Have fun with small games!\n\n- 😵 Hangman\n- 🎲 Few random games\n- 🪨📄✂️ Rock Paper Scissors\n- 🃏 Blackjack\n- 💣 Minesweeper\n- ❌⭕️ TicTacToe\n- 🔴🟡 4 in row\n- 🚢 Battle Ship\n- 🧩 N-puzzle game\n\nMade just for fun by @Stler",
+    "contact": "\n\n--- --- ---\n⌨️ You can write about any bugs found directly to the developer @Stler", 
+    "github": "\n\n--- --- ---\n🌐 The source code can be viewed on GitHub https://github.com/JuliaSivridi/pikkupelit", 
+    "menu-links": "🕹 Games", "game-links": "🕹 Have fun with small games!\n\n- 😵 Hangman @pp_hangman_bot\n- 🎲 Few random games @pp_random_bot\n- 🪨📄✂️ Rock Paper Scissors @pp_ropascis_bot\n- 🃏 Blackjack @pp_blackjack_bot\n- 💣 Minesweeper @pp_minesweeper_bot\n- ❌⭕️ TicTacToe @pp_tictactoe_bot\n- 🔴🟡 4 in row @pp_fourinrow_bot\n- 🚢 Battle Ship @pp_battleship_bot\n- 🧩 N-puzzle game @pp_npuzzle_bot\n\nMade just for fun by @Stler",
     "menu-set": "⚙️ Settings", "set-back": "🔙 Settings menu", "set-ttl": "⚙️ Settings menu", 
     "menu-lang": "🔤 Language", "lang-ask": "🔤 Choose a language", "lang-ok": "✅ Language chosen", 
 
@@ -33,7 +35,7 @@
 
     "game-mines": "💣 Minesweeper", "mines-cmplx": "\n\n🥱 Easy - 8 mines \n🙂 Normal - 12 mines \n😳 Hard - 16 mines ",
     "mines-regime": "Regime: ", "mode-dig": " ⛏️ Dig ", "mode-flag": " 🚩 Mark ", "mines-count": "Mines on field: ", "mines-mark": "Marked: ", 
-    "help-mines": "ℹ️ *Goal of the game* - open all safe cells and mark the mines \n• 1️⃣ A number on a cell indicates how many mines are around it (horizontally, vertically, and diagonally) \n• If you open a cell with a 💣 mine, the game is over \n\nYou can switch between modes: \n• ⛏️ Dig - opens a cell \n• 🚩 Mark - places a flag on a suspected mine \n\nIncorrectly placed flags are marked with ❌ at the end of the game\n\n*Your first click is always safe* 🎉", 
+    "help-mines": "ℹ️ *Goal of the game* - open all safe cells and mark the mines \n1️⃣ A number on a cell indicates how many mines are around it (horizontally, vertically, and diagonally) \n💣 If you open a cell with a mine, the game is over \n\nYou can switch between modes: \n⛏️ Dig - opens a cell \n🚩 Mark - places a flag on a suspected mine \n\nIncorrectly placed flags are marked with ❌ at the end of the game\n\n*Your first click is always safe* 🎉", 
 
     "game-15": "🔢 N-puzzle ", 
     "help-npuzzle": "ℹ️ *Goal of the game* - arrange the tiles in the correct order: left -> right, top -> bottom, with the empty space in the bottom-right corner \n\nMove the tiles using the empty space to restore the correct order of numbers", 
@@ -53,7 +55,9 @@
     "hi1": "Привет, ", "hi2": " 😋",
     "main-back": "🔙 Главное меню", "main-ttl": "🩶 Главное меню", 
     "menu-hlp": "ℹ️ Помощь", "help": "ℹ️ Тут могла бы быть справка", 
-    "menu-links": "🕹 Игры", "game-links": "🕹 Поиграй в мини игры!\n\n- 😵 Виселица\n- 🎲 Несколько игр в случайность\n- 🪨✂️📄 Камень Ножницы Бумага\n- 🃏 Блэкджек\n- 💣 Сапёр\n- ❌⭕️ Крестики-нолики\n- 🔴🟡 4 в ряд\n- 🚢 Морской Бой\n- 🧩 Пятнашки\n\nСделано @Stler просто для удовольствия",
+    "contact": "\n\n--- --- ---\n⌨️ О найденных багах можно писать напрямую разработчику @Stler", 
+    "github": "\n\n--- --- ---\n🌐 Исходный код можно посмотреть на GitHub https://github.com/JuliaSivridi/pikkupelit", 
+    "menu-links": "🕹 Игры", "game-links": "🕹 Поиграй в мини игры!\n\n- 😵 Виселица @pp_hangman_bot\n- 🎲 Несколько игр в случайность @pp_random_bot\n- 🪨✂️📄 Камень Ножницы Бумага @pp_ropascis_bot\n- 🃏 Блэкджек @pp_blackjack_bot\n- 💣 Сапёр @pp_minesweeper_bot\n- ❌⭕️ Крестики-нолики @pp_tictactoe_bot\n- 🔴🟡 4 в ряд @pp_fourinrow_bot\n- 🚢 Морской Бой @pp_battleship_bot\n- 🧩 Пятнашки @pp_npuzzle_bot\n\nСделано @Stler просто для удовольствия",
     "menu-set": "⚙️ Настройки", "set-back": "🔙 Меню настроек", "set-ttl": "⚙️ Меню настроек", 
     "menu-lang": "🔤 Язык", "lang-ask": "🔤 Выбери язык", "lang-ok": "✅ Язык выбран", 
 
@@ -83,7 +87,7 @@
 
     "game-mines": "💣 Сапёр", "mines-cmplx": "\n\n🥱 Легко - 8 мин \n🙂 Нормально - 12 мин \n😳 Сложно - 16 мин ", 
     "mines-regime": "Режим: ", "mode-dig": " ⛏️ Копать ", "mode-flag": " 🚩 Пометить ", "mines-count": "Мин на поле: ", "mines-mark": "Помечено: ", 
-    "help-mines": "ℹ️ *Цель игры* - открыть все безопасные клетки и пометить мины \n• 1️⃣ Число на клетке показывает, сколько мин находится вокруг неё (по горизонтали, вертикали и диагоналям) \n• Если вы открываете клетку с 💣 миной, игра заканчивается \n\nВы можете переключаться между режимами: \n• ⛏️ Копать - открывает клетку \n• 🚩 Пометить - ставит флажок на предполагаемую мину \n\nНеправильно установленные флажки в конце игры отмечаются ❌ крестиком\n\n*Ваш первый клик всегда безопасен* 🎉", 
+    "help-mines": "ℹ️ *Цель игры* - открыть все безопасные клетки и пометить мины \n1️⃣ Число на клетке показывает, сколько мин находится вокруг неё (по горизонтали, вертикали и диагоналям) \n💣 Если вы открываете клетку с миной, игра заканчивается \n\nВы можете переключаться между режимами: \n⛏️ Копать - открывает клетку \n🚩 Пометить - ставит флажок на предполагаемую мину \n\nНеправильно установленные флажки в конце игры отмечаются ❌ крестиком\n\n*Ваш первый клик всегда безопасен* 🎉", 
 
     "game-15": "🔢 Пятнашки ", 
     "help-npuzzle": "ℹ️ *Цель игры* - расположить тайлы в правильном порядке: слева -> направо, сверху -> вниз, с пустым местом в правом нижнем углу \n\nПеремещайте тайлы, используя пустое место, чтобы восстановить правильный порядок цифр", 

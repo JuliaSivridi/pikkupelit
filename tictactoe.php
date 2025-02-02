@@ -35,7 +35,7 @@
 require_once "connect.php";
 $dblink = mysqli_connect($dbhost, $dbuser, $dbpswd, $dbname);
 $tbname .= $suffix["ttt"];
-$bottoken .= $tokens["ttt"];
+$bottoken = $tokens["ttt"];
 require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
@@ -289,7 +289,8 @@ if (isset($input["callback_query"])) {
 
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
-				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-xo"], 
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-xo"]
+					.$lang[$ul]["contact"].$lang[$ul]["github"], 
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}

@@ -6,15 +6,15 @@
 I wanted to brush up on my programming skills and in a month, with AI support, I implemented several Telegram bots with mini-games, where the user plays against the computer.
 
 ## 🎮 Available Games:
-- 😵 **Hangman**
-- 🎲 **Few Random Games**
-- 🪨📄✂️ **Rock Paper Scissors**
-- 🃏 **Blackjack**
-- 💣 **Minesweeper**
-- ❌⭕️ **Tic-Tac-Toe**
-- 🔴🟡 **4 in a Row**
-- 🚢 **Battle Ship**
-- 🧩 **N-Puzzle Game**
+- 😵 **Hangman** [@pp_hangman_bot](https://t.me/pp_hangman_bot)
+- 🎲 **Few Random Games** [@pp_random_bot](https://t.me/pp_random_bot)
+- 🪨📄✂️ **Rock Paper Scissors** [@pp_ropascis_bot](https://t.me/pp_ropascis_bot)
+- 🃏 **Blackjack** [@pp_blackjack_bot](https://t.me/pp_blackjack_bot)
+- 💣 **Minesweeper** [@pp_minesweeper_bot](https://t.me/pp_minesweeper_bot)
+- ❌⭕️ **Tic-Tac-Toe** [@pp_tictactoe_bot](https://t.me/pp_tictactoe_bot)
+- 🔴🟡 **4 in a Row** [@pp_fourinrow_bot](https://t.me/pp_fourinrow_bot)
+- 🚢 **Battle Ship** [@pp_battleship_bot](https://t.me/pp_battleship_bot)
+- 🧩 **N-Puzzle Game** [@pp_npuzzle_bot](https://t.me/pp_npuzzle_bot)
 
 ### 🔧 Technologies Used:
 - **Language:** PHP  

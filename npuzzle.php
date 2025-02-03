@@ -150,12 +150,15 @@ if (isset($input["callback_query"])) {
 
 				// counting parity
 				$parity = 0;
-				for ($i = 0; $i < count($tiles); $i++)
-					for ($j = $i + 1; $j < count($tiles); $j++)
-						if ($tiles[$i] > $tiles[$j])
-							$parity++;
+				for ($t = 2; $t < $tsize*$tsize; $t++) {
+					$pos = array_search($t, $tiles);
+					for ($p = $pos+1; $p < $tsize*$tsize; $p++)
+					if ($tiles[$p] < $t)
+					$parity++;
+				} // change max to space
 				$pos_max = array_search($tsize*$tsize, $tiles);
-				$tiles[$pos_max] = 0; // change max to space
+				$tiles[$pos_max] = 0;
+				if ($tsize % 2 == 0) $parity += (floor($pos_max / $tsize) + 1);
 				if ($parity % 2 != 0) // swap 2 last tiles if unsolving
 					if ($pos_max < 2) { list($tiles[$pos_max+1], $tiles[$pos_max+2]) = array($tiles[$pos_max+2], $tiles[$pos_max+1]); }
 					else { list($tiles[0], $tiles[1]) = array($tiles[1], $tiles[0]); }

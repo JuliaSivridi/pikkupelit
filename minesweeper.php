@@ -83,7 +83,7 @@ function countMark($cover) {
 function drawField($lang_ul, $field, $cover, $isDig, $isGameOver, $bx=-1, $by=-1) {
 	$symbols = [12 => "🚩", 11 => "❌", 10 => "💥", 9 => "💣", 
 		8 => "8️⃣", 7 => "7️⃣", 6 => "6️⃣", 5 => "5️⃣", 4 => "4️⃣", 
-		3 => "3️⃣", 2 => "2️⃣", 1 => "1️⃣", 0 => " "];
+		3 => "3️⃣", 2 => "2️⃣", 1 => "1️⃣", 0 => " ", -1 => "⬜️"];
 	$size = count($field);
 	$gkbd = '{"inline_keyboard":[';
 	$gkbd .= '[{"text":"'.$lang_ul["mode-dig"].'","callback_data":"'.($isGameOver ? "-" : "switch-dig") . '"},';
@@ -99,7 +99,7 @@ function drawField($lang_ul, $field, $cover, $isDig, $isGameOver, $bx=-1, $by=-1
 				: $symbols[$fcell];
 			else $text = ($ccell === true) 
 				? $symbols[$fcell] 
-				: ($ccell === "F" ? $symbols[12] : "⬜️");
+				: ($ccell === "F" ? $symbols[12] : $symbols[-1]);
 			$callback_data = ($ccell === true || $isGameOver) 
 				? "-" 
 				: ($isDig ? "dig-" : "flag-") . "$x-$y";

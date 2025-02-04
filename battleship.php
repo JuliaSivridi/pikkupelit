@@ -61,7 +61,7 @@ function placeShips($bsize = 7) {
 					}
 				} $attempts++;
 			}
-		else {
+		else { // for small ships take all possible free space, bcz random mb won't find them
 			$freeCells = getAvailableSingleShipCells($board);
 			shuffle($freeCells);
 			for ($i = 0; $i < $scount && !empty($freeCells); $i++) {
@@ -76,13 +76,10 @@ function placeShips($bsize = 7) {
 	for ($i = 0; $i < $size; $i++) {
 		$nx = $x + ($d === 1 ? $i : 0); // vert
 		$ny = $y + ($d === 0 ? $i : 0); // hor
-		if ($nx >= $bsize || $ny >= $bsize) // out of border
+		if ($nx >= $bsize || $ny >= $bsize // out of border
+			|| $board[$nx][$ny] !== 0 // not free
+			|| isTouching($board, $nx, $ny)) // neihgbors on sides
 			return false;
-		foreach ([[-1, 0], [1, 0], [0, -1], [0, 1]] as [$dx, $dy]) { // neihgbors on sides
-			$tx = $nx + $dx; $ty = $ny + $dy;
-			if ($tx >= 0 && $tx < $bsize && $ty >= 0 && $ty < $bsize && $board[$tx][$ty] === 2)
-				return false;
-		}
 	} return true;
 } function placeShip(&$board, $x, $y, $size, $d) {
 	for ($i = 0; $i < $size; $i++) {
@@ -98,7 +95,7 @@ function placeShips($bsize = 7) {
 			if ($board[$x][$y] === 0 && !isTouching($board, $x, $y))
 				$candidates[] = [$x, $y];
 	return $candidates;
-} function isTouching($board, $x, $y) {
+} function isTouching($board, $x, $y) { // check neihgbors only on sides, not diags like in classical game
 	$bsize = count($board);
 	foreach ([[-1, 0], [1, 0], [0, -1], [0, 1]] as [$dx, $dy]) {
 		$tx = $x + $dx; $ty = $y + $dy;

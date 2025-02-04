@@ -10,6 +10,7 @@
 // commands: 
 // game - Start new game
 // help - Show guide
+// stat - Show statistics
 // lang - Change language
 // settings - Show settings menu
 // links - Show games links
@@ -25,6 +26,7 @@
 // `chat_id` TEXT NOT NULL, `msg_id` BIGINT UNSIGNED, 
 // `user_name` TEXT, `user_lang` VARCHAR(10), 
 // `complex` TINYINT, `isfirst` BOOLEAN, `isdig` BOOLEAN, `minefield` TEXT, `cover` TEXT,
+// `statwin` INT UNSIGNED NOT NULL DEFAULT 0, `statlose` INT UNSIGNED NOT NULL DEFAULT 0, 
 // PRIMARY KEY (`id`)) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;";
 // if (mysqli_query($dblink, $dbcreate))
 // echo "<br>Table created";
@@ -39,7 +41,7 @@ $bottoken = $tokens["msw"];
 require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
-$menus = ["main" => [["menu-new"], ["menu-hlp", "menu-links", "menu-set"]],
+$menus = ["main" => [["menu-new", "menu-stat"], ["menu-hlp", "menu-links", "menu-set"]],
 	"chus-cmplx" => [["cmplx-easy", "cmplx-norm", "cmplx-hard"], ["set-back"]],
 	"set" => [["menu-cmplx", "menu-lang"], ["main-back"]]];
 
@@ -148,6 +150,7 @@ if (isset($input["callback_query"])) {
 		$msg_id = $row["msg_id"]; $user_lang = $row["user_lang"];
 		$ul = (array_key_exists($user_lang, $lang)) ? $user_lang : "ru";
 		mysqli_free_result($result_usr);
+		$swin = $row["statwin"]; $slose = $row["statlose"];
 		$mines = $row["complex"];
 		$field = json_decode($row["minefield"], true);
 		$cover = json_decode($row["cover"], true);
@@ -173,10 +176,12 @@ if (isset($input["callback_query"])) {
 
 				$result = handleMove($field, $cover, $x, $y); // dig
 				if ($result["state"] == "game_over") { // explosion 💥
+					$slose++; update_data($chat_id, ["statlose" => $slose]);
 					trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
 						"text" => $lang[$ul]["game-lose"],
 						"reply_markup" => drawField($lang[$ul], $field, $cover, $isDig, true, $x, $y)]);
 				} elseif ($result["state"] == "game_won") { // all not-mines are opened
+					$swin++; update_data($chat_id, ["statwin" => $swin]);
 					trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
 						"text" => $lang[$ul]["game-win"],
 						"reply_markup" => drawField($lang[$ul], $field, $cover, $isDig, true)]);
@@ -266,6 +271,16 @@ if (isset($input["callback_query"])) {
 				break;
 			}
 
+			// main menu -> stat
+			case "/stat": case $lang[$ul]["menu-stat"]: {
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["stat-ttl"]
+					."`".$lang[$ul]["stat-all"].str_pad((string)($row["statwin"]+$row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-all"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-win"].str_pad((string)($row["statwin"]), (20 - mb_strlen($lang[$ul]["stat-win"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-lose"].str_pad((string)($row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-lose"])), " ", STR_PAD_LEFT)."`", 
+					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
+				break;
+			}
+
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-mines"]
@@ -273,7 +288,7 @@ if (isset($input["callback_query"])) {
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}
-			
+
 			// basic functionality {
 			case "/start": {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"], 

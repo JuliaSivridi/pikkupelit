@@ -10,6 +10,7 @@
 // commands: 
 // game - Start new game
 // help - Show guide
+// stat - Show statistics
 // lang - Change language
 // settings - Show settings menu
 // links - Show games links
@@ -25,6 +26,7 @@
 // `chat_id` TEXT NOT NULL, `msg_id` BIGINT UNSIGNED, 
 // `user_name` TEXT, `user_lang` VARCHAR(10), 
 // `start` BOOLEAN, `board4` TEXT,
+// `statwin` INT UNSIGNED NOT NULL DEFAULT 0, `statlose` INT UNSIGNED NOT NULL DEFAULT 0, `statdraw` INT UNSIGNED NOT NULL DEFAULT 0,
 // PRIMARY KEY (`id`)) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;";
 // if (mysqli_query($dblink, $dbcreate))
 // echo "<br>Table created";
@@ -39,7 +41,7 @@ $bottoken = $tokens["fir"];
 require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
-$menus = ["main" => [["menu-new"], ["menu-hlp", "menu-links", "menu-set"]],
+$menus = ["main" => [["menu-new", "menu-stat"], ["menu-hlp", "menu-links", "menu-set"]],
 	"set" => [["menu-lang"], ["main-back"]]];
 $symbols = ["⚪", "🔴", "🟡"];
 
@@ -116,25 +118,28 @@ function processTurn($board, $sign, $col, $chat_id, $msg_id, $lang_ul, $isUser) 
 	global $symbols;
 	$move = makeMove($board, $sign, $col);
 	$board = $move["board"]; $row = $move["row"];
+	$state = "";
 	$checkState = isWin($board, $sign, $row, $col);
 	if ($checkState["win"]) { // if win
 		makeDrop($board, $sign, $row, $col, $chat_id, $msg_id, $lang_ul, $isUser);
 		trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
 			"text" => $isUser ? $lang_ul["game-win"] : $lang_ul["game-lose"], 
 			"reply_markup" => drawBoard($board, false, $checkState["line"])]);
-		return ["board" => $board, "game_over" => true];
+		$state = $isUser ? "win" : "lose";
+		return ["board" => $board, "state" => $state, "game_over" => true];
 	} elseif (isDraw($board)) { // if no more moves
 		makeDrop($board, $sign, $row, $col, $chat_id, $msg_id, $lang_ul, $isUser);
 		trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
 			"text" => $lang_ul["game-draw"], "reply_markup" => drawBoard($board, false)]);
-		return ["board" => $board, "game_over" => true];
+		$state = "draw";
+		return ["board" => $board, "state" => $state, "game_over" => true];
 	} else { // game continues
 		makeDrop($board, $sign, $row, $col, $chat_id, $msg_id, $lang_ul, $isUser);
 		trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
 			"text" => $lang_ul["game-four"] ."\n".$symbols[(($sign == 1) ? 2 : 1)]
 				." ".($isUser ? $lang_ul["turn-comp"] : $lang_ul["turn-user"]), 
 			"reply_markup" => drawBoard($board, ($isUser ? false : true), [[$row, $col]])]);
-		return ["board" => $board, "game_over" => false];
+		return ["board" => $board, "state" => $state, "game_over" => false];
 	}
 }
 
@@ -203,6 +208,7 @@ if (isset($input["callback_query"])) {
 		$msg_id = $row["msg_id"]; $user_lang = $row["user_lang"];
 		$ul = (array_key_exists($user_lang, $lang)) ? $user_lang : "ru";
 		mysqli_free_result($result_usr);
+		$swin = $row["statwin"]; $slose = $row["statlose"]; $sdraw = $row["statdraw"];
 		$board = json_decode($row["board4"], true);
 		$who_starts = (bool)$row["start"];
 		$user_sign = ($who_starts) ? 1 : 2;
@@ -211,15 +217,27 @@ if (isset($input["callback_query"])) {
 		// user turn
 		$user_col = explode("-", $cb_data)[1];
 		$userTurn = processTurn($board, $user_sign, $user_col, $chat_id, $msg_id, $lang[$ul], true);
-		if ($userTurn["game_over"]) return;
-		$board = $userTurn["board"];
+		if ($userTurn["game_over"]) {
+			switch ($userTurn["state"]) {
+				case "lose": $slose++; break;
+				case "win": $swin++; break;
+				case "draw": $sdraw++; break;
+			} update_data($chat_id, ["statwin" => $swin, "statlose" => $slose, "statdraw" => $sdraw]);
+			return;
+		} $board = $userTurn["board"];
 
 		// computer turn
 		sleep(1);
 		$comp_col = getSmartMove($board, $comp_sign, $user_sign);
 		$compTurn = processTurn($board, $comp_sign, $comp_col, $chat_id, $msg_id, $lang[$ul], false);
-		if ($compTurn["game_over"]) return;
-		$board = $compTurn["board"];
+		if ($compTurn["game_over"]) {
+			switch ($compTurn["state"]) {
+				case "lose": $slose++; break;
+				case "win": $swin++; break;
+				case "draw": $sdraw++; break;
+			} update_data($chat_id, ["statwin" => $swin, "statlose" => $slose, "statdraw" => $sdraw]);
+			return;
+		} $board = $compTurn["board"];
 
 		update_data($chat_id, ["board4" => $board]);
 	}
@@ -273,6 +291,17 @@ if (isset($input["callback_query"])) {
 				break;
 			}
 
+			// main menu -> stat
+			case "/stat": case $lang[$ul]["menu-stat"]: {
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["stat-ttl"]
+					."`".$lang[$ul]["stat-all"].str_pad((string)($row["statwin"]+$row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-all"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-win"].str_pad((string)($row["statwin"]), (20 - mb_strlen($lang[$ul]["stat-win"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-lose"].str_pad((string)($row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-lose"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-draw"].str_pad((string)($row["statdraw"]), (21 - mb_strlen($lang[$ul]["stat-draw"])), " ", STR_PAD_LEFT)."`", 
+					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
+				break;
+			}
+
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-four"]
@@ -280,7 +309,7 @@ if (isset($input["callback_query"])) {
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}
-			
+
 			// basic functionality {
 			case "/start": {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"], 

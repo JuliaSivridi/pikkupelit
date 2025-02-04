@@ -9,6 +9,7 @@
 // Made just for fun by @Stler
 // commands: 
 // help - Show guide
+// stat - Show statistics
 // lang - Change language
 // settings - Show settings menu
 // links - Show games links
@@ -23,6 +24,7 @@
 // `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, 
 // `chat_id` TEXT NOT NULL, `msg_id` BIGINT UNSIGNED, 
 // `user_name` TEXT, `user_lang` VARCHAR(10), 
+// `statwin` INT UNSIGNED NOT NULL DEFAULT 0, `statlose` INT UNSIGNED NOT NULL DEFAULT 0, `statdraw` INT UNSIGNED NOT NULL DEFAULT 0,
 // PRIMARY KEY (`id`)) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;";
 // if (mysqli_query($dblink, $dbcreate))
 // echo "<br>Table created";
@@ -38,6 +40,7 @@ require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
 $menus = ["main" => [["rsp-stone", "rsp-scissors", "rsp-paper"], 
+		["menu-stat"],
 		["menu-hlp", "menu-links", "menu-set"]],
 		"set" => [["menu-lang"], ["main-back"]]];
 
@@ -73,20 +76,40 @@ if (isset($input["message"])) {
 		switch ($user_msg) {
 			// main menu -> new game
 			case $lang[$ul]["rsp-stone"]: case $lang[$ul]["rsp-scissors"]: case $lang[$ul]["rsp-paper"]: {
+				$swin = $row["statwin"]; $slose = $row["statlose"]; $sdraw = $row["statdraw"];
 				$rsp = [$lang[$ul]["rsp-stone"], $lang[$ul]["rsp-scissors"], $lang[$ul]["rsp-paper"]];
 				$bot_msg = $rsp[array_rand($rsp, 1)]; // bot random choice
 				$answer = ["chat_id" => $chat_id, "text" => $lang[$ul]["rsp-comp"].$bot_msg."\n\n", 
 					"reply_markup" => draw_menu($lang[$ul], "main")];
-				if ($bot_msg == $user_msg) $answer["text"] .= $lang[$ul]["game-draw"];
+				if ($bot_msg == $user_msg) {
+					$sdraw++;
+					$answer["text"] .= $lang[$ul]["game-draw"];
+				}
 				else {
 					$user_win = [$lang[$ul]["rsp-stone"] => $lang[$ul]["rsp-scissors"], 
 						$lang[$ul]["rsp-scissors"] => $lang[$ul]["rsp-paper"], 
 						$lang[$ul]["rsp-paper"] => $lang[$ul]["rsp-stone"]];
 					if ($user_win[$user_msg] == $bot_msg) {
+						$swin++;
 						$answer["text"] .= $lang[$ul]["game-win"];
 						$answer["message_effect_id"] = "5046509860389126442"; // 🎉
-					} else $answer["text"] .= $lang[$ul]["game-lose"];
+					} else {
+						$slose++;
+						$answer["text"] .= $lang[$ul]["game-lose"];
+					}
 				} trequest("sendMessage", $answer);
+				update_data($chat_id, ["statwin" => $swin, "statlose" => $slose, "statdraw" => $sdraw]);
+				break;
+			}
+
+			// main menu -> stat
+			case "/stat": case $lang[$ul]["menu-stat"]: {
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["stat-ttl"]
+					."`".$lang[$ul]["stat-all"].str_pad((string)($row["statwin"]+$row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-all"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-win"].str_pad((string)($row["statwin"]), (20 - mb_strlen($lang[$ul]["stat-win"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-lose"].str_pad((string)($row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-lose"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-draw"].str_pad((string)($row["statdraw"]), (21 - mb_strlen($lang[$ul]["stat-draw"])), " ", STR_PAD_LEFT)."`", 
+					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}
 
@@ -97,7 +120,7 @@ if (isset($input["message"])) {
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}
-			
+
 			// basic functionality {
 			case "/start": {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"], 

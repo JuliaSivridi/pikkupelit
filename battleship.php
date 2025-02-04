@@ -10,6 +10,7 @@
 // commands: 
 // game - Start new game
 // help - Show guide
+// stat - Show statistics
 // lang - Change language
 // settings - Show settings menu
 // links - Show games links
@@ -25,6 +26,7 @@
 // `chat_id` TEXT NOT NULL, `msg_id` BIGINT UNSIGNED, 
 // `user_name` TEXT, `user_lang` VARCHAR(10), 
 // `cstack` TEXT, `turn` BOOLEAN, `ccover` TEXT, `csea` TEXT, `clives` TINYINT, `ucover` TEXT, `usea` TEXT, `ulives` TINYINT, 
+// `statwin` INT UNSIGNED NOT NULL DEFAULT 0, `statlose` INT UNSIGNED NOT NULL DEFAULT 0, 
 // PRIMARY KEY (`id`)) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;";
 // if (mysqli_query($dblink, $dbcreate))
 // echo "<br>Table created";
@@ -39,7 +41,7 @@ $bottoken = $tokens["bts"];
 require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
-$menus = ["main" => [["menu-new"], ["menu-hlp", "menu-links", "menu-set"]],
+$menus = ["main" => [["menu-new", "menu-stat"], ["menu-hlp", "menu-links", "menu-set"]],
 	"set" => [["menu-lang"], ["main-back"]]];
 $symbols = [4 => "☠️", 3 => "🔥", 2 => "🚢", 1 => "🌀", 0 => "🟦", -1 => "⬜️"];
 
@@ -113,7 +115,7 @@ function getGameMessage($lang_ul, $board, $isUser = false, $isGameOver = false, 
 		$text .= "\n";
 		foreach ($row as $cell)
 			$text .= $symbols[$cell];
-	} if (!$isGameOver) $text .= "\n\n".($isUser ? $lang_ul["turn-user"] : $lang_ul["turn-comp"]);
+	} if (!$isGameOver) $text .= "\n\n".($isUser ? "🙂".$lang_ul["turn-user"] : "🤖".$lang_ul["turn-comp"]);
 	return $text;
 }
 
@@ -263,6 +265,7 @@ if (isset($input["callback_query"])) {
 		$msg_id = $row["msg_id"]; $user_lang = $row["user_lang"];
 		$ul = (array_key_exists($user_lang, $lang)) ? $user_lang : "ru";
 		mysqli_free_result($result_usr);
+		$swin = $row["statwin"]; $slose = $row["statlose"];
 		$bsize = 7; // don't make bigger
 		$ucover = json_decode($row["ucover"], true); $ccover = json_decode($row["ccover"], true);
 		$uboard = json_decode($row["usea"], true); $cboard = json_decode($row["csea"], true);
@@ -276,8 +279,11 @@ if (isset($input["callback_query"])) {
 		$userMove = makeMove($chat_id, $ccover, $cboard, $r, $c, $clives, true);
 		$ccover = $userMove["cover"]; $cboard = $userMove["board"]; $turn = $userMove["turn"];
 		updateGameMessage($chat_id, $msg_id, $lang[$ul], $uboard, $cboard, $ccover, 
-		$turn, $userMove["game_over"], $userMove["game_over"]);
-		if ($userMove["game_over"]) return; // user win
+			$turn, $userMove["game_over"], $userMove["game_over"]);
+		if ($userMove["game_over"]) { // user win
+			$swin++; update_data($chat_id, ["statwin" => $swin]);
+			return;
+		}
 		if ($turn) return; // user turn again
 
 		if (!$turn) { // computer turn
@@ -293,7 +299,10 @@ if (isset($input["callback_query"])) {
 				$cstack = $compMove["cstack"]; $turn = $compMove["turn"];
 				updateGameMessage($chat_id, $msg_id, $lang[$ul], $uboard, $cboard, $ccover, 
 					$turn, $compMove["game_over"], false);
-				if ($compMove["game_over"]) return; // user lose
+				if ($compMove["game_over"]) { // user lose
+					$slose++; update_data($chat_id, ["statlose" => $slose]);
+					return;
+				}
 			} while (!$turn); // computer turn again
 		}
 	}
@@ -360,6 +369,16 @@ if (isset($input["callback_query"])) {
 				break;
 			}
 
+			// main menu -> stat
+			case "/stat": case $lang[$ul]["menu-stat"]: {
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["stat-ttl"]
+					."`".$lang[$ul]["stat-all"].str_pad((string)($row["statwin"]+$row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-all"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-win"].str_pad((string)($row["statwin"]), (20 - mb_strlen($lang[$ul]["stat-win"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-lose"].str_pad((string)($row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-lose"])), " ", STR_PAD_LEFT)."`", 
+					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
+				break;
+			}
+
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-sea"]
@@ -367,7 +386,7 @@ if (isset($input["callback_query"])) {
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}
-			
+
 			// basic functionality {
 			case "/start": {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"], 

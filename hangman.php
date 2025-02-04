@@ -10,6 +10,7 @@
 // commands: 
 // game - Start new game
 // help - Show guide
+// stat - Show statistics
 // lang - Change language
 // settings - Show settings menu
 // links - Show games links
@@ -24,7 +25,8 @@
 // `id` INT UNSIGNED NOT NULL AUTO_INCREMENT, 
 // `chat_id` TEXT NOT NULL, `msg_id` BIGINT UNSIGNED, 
 // `user_name` TEXT, `user_lang` VARCHAR(10), 
-// `complex` TINYINT, `lives` TINYINT, `word` TEXT, `guess` TEXT, `letters` TEXT, 
+// `complex` TINYINT, `hint` BOOLEAN, `lives` TINYINT, `word` TEXT, `guess` TEXT, `letters` TEXT, 
+// `statwin` INT UNSIGNED NOT NULL DEFAULT 0, `statlose` INT UNSIGNED NOT NULL DEFAULT 0, 
 // PRIMARY KEY (`id`)) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;";
 // if (mysqli_query($dblink, $dbcreate))
 // echo "<br>Table created";
@@ -39,7 +41,7 @@ $bottoken = $tokens["hng"];
 require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
-$menus = ["main" => [["menu-new"], ["menu-hlp", "menu-links", "menu-set"]],
+$menus = ["main" => [["menu-new", "menu-stat"], ["menu-hlp", "menu-links", "menu-set"]],
 	"chus-cmplx" => [["cmplx-easy", "cmplx-norm", "cmplx-hard"], ["set-back"]],
 	"set" => [["menu-cmplx", "menu-lang"], ["main-back"]]];
 require_once "words.php";
@@ -203,7 +205,8 @@ if (isset($input["callback_query"])) {
 		$msg_id = $row["msg_id"]; $user_lang = $row["user_lang"];
 		$ul = (array_key_exists($user_lang, $lang)) ? $user_lang : "ru";
 		mysqli_free_result($result_usr);
-		$lives = $row["complex"];
+		$swin = $row["statwin"]; $slose = $row["statlose"];
+		$isHint = (bool)$row["hint"]; $lives = $row["complex"];
 		$word = $row["word"]; $guess = $row["guess"];
 		$letters = $row["letters"]; $lives = $row["lives"];
 		$word_arr = mb_str_split($word);
@@ -211,6 +214,7 @@ if (isset($input["callback_query"])) {
 
 		list($action, $l) = explode("-", $cb_data);
 		if ($action === "open") { // user use hint
+			$isHint = true; update_data($chat_id, ["hint" => $isHint]);
 			$open = array_unique(array_diff($word_arr, $guess_arr));
 			$letter = $open[array_rand($open)];
 		} else $letter = explode("-", $cb_data)[1]; // user press letter
@@ -228,10 +232,14 @@ if (isset($input["callback_query"])) {
 		}
 
 		if ($word == $guess) { // win!
-			trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
-			"text" => $lang[$ul]["game-win"] ."\n<b>".$word."</b>", "parse_mode" => "HTML", 
+			if (!$isHint) {
+				$swin++; // win only without hints
+				update_data($chat_id, ["statwin" => $swin]);
+			} trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
+				"text" => $lang[$ul]["game-win"] ."\n<b>".$word."</b>", "parse_mode" => "HTML", 
 			"reply_markup" => draw_inline_kbd(mb_str_split($letters), false, $lang[$ul])]);
 		} elseif ($lives == 0) { // lose
+			$slose++; update_data($chat_id, ["statlose" => $slose]);
 			trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
 				"text" => draw_hang($hangman) 
 					."\n".$lang[$ul]["game-lose"] ."\n<b>".$word."</b>", "parse_mode" => "HTML", 
@@ -300,7 +308,7 @@ if (isset($input["callback_query"])) {
 			case "/game": case "/game@pp_hangman_bot": case $lang[$ul]["menu-new"]: {
 				$word = $words[$ul][array_rand($words[$ul])];
 				$guess = str_repeat("_", mb_strlen($word));
-				$lives = $row["complex"];
+				$isHint = false; $lives = $row["complex"];
 				switch ($ul) {
 					case "en": $letters = range("a", "z"); break;
 					case "ru": $letters = preg_split("//u", "абвгдежзийклмнопрстуфхцчшщъыьэюя", -1, PREG_SPLIT_NO_EMPTY); break;
@@ -313,8 +321,18 @@ if (isset($input["callback_query"])) {
 					"reply_markup" => draw_inline_kbd($letters, true, $lang[$ul])]);
 				$tresponse = json_decode($answer, true);
 				$msg_id = $tresponse["result"]["message_id"];
-				update_data($chat_id, ["lives" => $lives, "word" => $word, "guess" => $guess, 
+				update_data($chat_id, ["hint" => $isHint, "lives" => $lives, "word" => $word, "guess" => $guess, 
 					"letters" => implode($letters), "msg_id" => $msg_id]);
+				break;
+			}
+
+			// main menu -> stat
+			case "/stat": case $lang[$ul]["menu-stat"]: {
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["stat-ttl"]
+					."`".$lang[$ul]["stat-all"].str_pad((string)($row["statwin"]+$row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-all"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-win"].str_pad((string)($row["statwin"]), (20 - mb_strlen($lang[$ul]["stat-win"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-lose"].str_pad((string)($row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-lose"])), " ", STR_PAD_LEFT)."`", 
+					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}
 
@@ -325,7 +343,7 @@ if (isset($input["callback_query"])) {
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}
-			
+
 			// basic functionality {
 			case "/start": {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"], 

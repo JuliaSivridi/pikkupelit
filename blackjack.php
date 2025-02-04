@@ -10,6 +10,7 @@
 // commands: 
 // game - Start new game
 // help - Show guide
+// stat - Show statistics
 // lang - Change language
 // settings - Show settings menu
 // links - Show games links
@@ -25,6 +26,7 @@
 // `chat_id` TEXT NOT NULL, `msg_id` BIGINT UNSIGNED, 
 // `user_name` TEXT, `user_lang` VARCHAR(10), 
 // `ccards` TEXT, `ccost` TINYINT, `ucards` TEXT, `ucost` TINYINT, 
+// `statwin` INT UNSIGNED NOT NULL DEFAULT 0, `statlose` INT UNSIGNED NOT NULL DEFAULT 0, `statdraw` INT UNSIGNED NOT NULL DEFAULT 0,
 // PRIMARY KEY (`id`)) ENGINE = InnoDB CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci;";
 // if (mysqli_query($dblink, $dbcreate))
 // echo "<br>Table created";
@@ -39,7 +41,7 @@ $bottoken = $tokens["bjk"];
 require_once "api_bd_menu.php";
 $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
-$menus = ["main" => [["menu-new"], ["menu-hlp", "menu-links", "menu-set"]],
+$menus = ["main" => [["menu-new", "menu-stat"], ["menu-hlp", "menu-links", "menu-set"]],
 	"set" => [["menu-lang"], ["main-back"]]];
 $inline_menus = ["game" => [[["text" => "menu-more", "cb_data" => "cb-more"],
 	["text" => "menu-stop", "cb_data" => "cb-stop"]]]];
@@ -124,7 +126,7 @@ function getGameState($lang_ul, $ccards, $ccost, $ucards, $ucost) {
 		case 0: $msg = $lang_ul["game-lose"]; if ($bj) $msg .= $lang_ul["bj-comp"].$lang_ul["bj-blackjack"]; break;
 		case 1: $msg = $lang_ul["game-win"]; if ($bj) $msg .= $lang_ul["bj-user"].$lang_ul["bj-blackjack"]; break;
 		case 2: $msg = $lang_ul["game-draw"]; break;
-	} return "\n".$msg;
+	} return ["msg" => "\n".$msg, "state" => $state];
 }
 
 // |comp | user->  <21      |    21      |  21< 
@@ -158,6 +160,7 @@ if (isset($input["callback_query"])) {
 		$msg_id = $row["msg_id"]; $user_lang = $row["user_lang"];
 		$ul = (array_key_exists($user_lang, $lang)) ? $user_lang : "ru";
 		mysqli_free_result($result_usr);
+		$swin = $row["statwin"]; $slose = $row["statlose"]; $sdraw = $row["statdraw"];
 		$ccards = json_decode($row["ccards"], true); $ccost = $row["ccost"];
 		$ucards = json_decode($row["ucards"], true); $ucost = $row["ucost"];
 
@@ -175,11 +178,16 @@ if (isset($input["callback_query"])) {
 			while ($ccost <= 17) { // comp turn at the end of game
 				$ccards[] = getRandomCard($lang[$ul]);
 				$ccost = getCardsCost($ccards);
-			} update_data($chat_id, ["ccards" => $ccards, "ccost" => $ccost]);
+			} $gameState = getGameState($lang[$ul], $ccards, $ccost, $ucards, $ucost);
 			trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
-				"text" => writeGame($lang[$ul], $ccards, $ccost, $ucards, $ucost)
-					.getGameState($lang[$ul], $ccards, $ccost, $ucards, $ucost), 
+				"text" => writeGame($lang[$ul], $ccards, $ccost, $ucards, $ucost).$gameState["msg"], 
 				"parse_mode" => "Markdown"]);
+			switch ($gameState["state"]) {
+				case 0: $slose++; break;
+				case 1: $swin++; break;
+				case 2: $sdraw++; break;
+			} update_data($chat_id, ["ccards" => $ccards, "ccost" => $ccost, 
+				"statwin" => $swin, "statlose" => $slose, "statdraw" => $sdraw]);
 		} else {
 			trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
 				"text" => writeGame($lang[$ul], $ccards, $ccost, $ucards, $ucost), 
@@ -216,6 +224,7 @@ if (isset($input["callback_query"])) {
 		switch ($user_msg) {
 			// main menu -> new game
 			case "/game": case "/game@pp_blackjack_bot": case $lang[$ul]["menu-new"]: {
+				$swin = $row["statwin"]; $slose = $row["statlose"]; $sdraw = $row["statdraw"];
 				$ccards[] = getRandomCard($lang[$ul]);
 				$ccost = getCardsCost($ccards);
 				$ucards[] = getRandomCard($lang[$ul]);
@@ -228,11 +237,16 @@ if (isset($input["callback_query"])) {
 					while ($ccost <= 17) { // comp turn at the end of game
 						$ccards[] = getRandomCard($lang[$ul]);
 						$ccost = getCardsCost($ccards);
-					} update_data($chat_id, ["ccards" => $ccards, "ccost" => $ccost]);
+					} $gameState = getGameState($lang[$ul], $ccards, $ccost, $ucards, $ucost);
 					trequest("sendMessage", ["chat_id" => $chat_id, 
-						"text" => writeGame($lang[$ul], $ccards, $ccost, $ucards, $ucost)
-							.getGameState($lang[$ul], $ccards, $ccost, $ucards, $ucost), 
+						"text" => writeGame($lang[$ul], $ccards, $ccost, $ucards, $ucost).$gameState["msg"], 
 						"parse_mode" => "Markdown"]);
+					switch ($gameState["state"]) {
+						case 0: $slose++; break;
+						case 1: $swin++; break;
+						case 2: $sdraw++; break;
+					} update_data($chat_id, ["ccards" => $ccards, "ccost" => $ccost, 
+						"statwin" => $swin, "statlose" => $slose, "statdraw" => $sdraw]);
 				} else {
 					$answer = trequest("sendMessage", ["chat_id" => $chat_id, 
 						"text" => writeGame($lang[$ul], $ccards, $ccost, $ucards, $ucost), 
@@ -244,6 +258,17 @@ if (isset($input["callback_query"])) {
 				} break;
 			}
 
+			// main menu -> stat
+			case "/stat": case $lang[$ul]["menu-stat"]: {
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["stat-ttl"]
+					."`".$lang[$ul]["stat-all"].str_pad((string)($row["statwin"]+$row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-all"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-win"].str_pad((string)($row["statwin"]), (20 - mb_strlen($lang[$ul]["stat-win"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-lose"].str_pad((string)($row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-lose"])), " ", STR_PAD_LEFT)."`"
+					."`".$lang[$ul]["stat-draw"].str_pad((string)($row["statdraw"]), (21 - mb_strlen($lang[$ul]["stat-draw"])), " ", STR_PAD_LEFT)."`", 
+					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
+				break;
+			}
+
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-bj"]
@@ -251,7 +276,7 @@ if (isset($input["callback_query"])) {
 					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
 				break;
 			}
-			
+
 			// basic functionality {
 			case "/start": {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"], 

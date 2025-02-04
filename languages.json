@@ -2,6 +2,7 @@
   "en": {
     "hi1": "Hello, ", "hi2": " 😋", 
     "main-back": "🔙 Main menu", "main-ttl": "🩶 Main menu", 
+    "menu-stat": "📊 Statistics", "stat-ttl": "📊 Statistics", "stat-all": "\n🕹 Games played: ", "stat-win": "\n🥇 Win: ", "stat-lose": "\n💀 Lose: ", "stat-draw": "\n⚖️ Draw: ", 
     "menu-hlp": "ℹ️ Help", "help": "ℹ️ There could be some help here", 
     "contact": "\n\n--- --- ---\n⌨️ You can write about any bugs found directly to the developer @Stler", 
     "github": "\n\n--- --- ---\n🌐 The source code can be viewed on GitHub https://github.com/JuliaSivridi/pikkupelit", 
@@ -54,6 +55,7 @@
   "ru": {
     "hi1": "Привет, ", "hi2": " 😋",
     "main-back": "🔙 Главное меню", "main-ttl": "🩶 Главное меню", 
+    "menu-stat": "📊 Статистика", "stat-ttl": "📊 Статистика", "stat-all": "\n🕹 Игр сыграно: ", "stat-win": "\n🥇 Побед: ", "stat-lose": "\n💀 Поражений: ", "stat-draw": "\n⚖️ Ничьих: ", 
     "menu-hlp": "ℹ️ Помощь", "help": "ℹ️ Тут могла бы быть справка", 
     "contact": "\n\n--- --- ---\n⌨️ О найденных багах можно писать напрямую разработчику @Stler", 
     "github": "\n\n--- --- ---\n🌐 Исходный код можно посмотреть на GitHub https://github.com/JuliaSivridi/pikkupelit", 

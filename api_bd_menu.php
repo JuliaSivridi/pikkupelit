@@ -53,36 +53,23 @@ function draw_menu($lang_ul, $type) {
 } // inline keyboard
 function draw_inline_menu($lang_ul, $type) {
 	global $inline_menus; $buttons = $inline_menus[$type] ?? [];
-	$inl_kbd = array_map(fn($row) => array_map(fn($button) => ["text" => $lang_ul[$button["text"]], 
-		"callback_data" => $button["cb_data"]], $row), $buttons);
+	$inl_kbd = array_map(fn($row) => array_map(fn($button) => [
+		"text" => $lang_ul[$button["text"]],
+		$button["cb_data"] ? "callback_data" : "url" => $button["cb_data"] ?? $button["url"]
+	], $row), $buttons);
 	return json_encode(["inline_keyboard" => $inl_kbd]);
 }
 
-// contact links keyboard
-function contact_links($lang_ul) {
-	$buttons = [
-		[["text" => $lang_ul["contact-dev"], "url" => "tg://resolve?domain=Stler"]],
-		[["text" => $lang_ul["source-code"], "url" => "https://github.com/JuliaSivridi/pikkupelit"]]
-	];
-	$inl_kbd = array_map(fn($row) => array_map(fn($button) => ["text" => $button["text"], 
-		"url" => $button["url"]], $row), $buttons);
-	return json_encode(["inline_keyboard" => $inl_kbd]);
-}
-
-// bot links keyboard
-function game_links($lang_ul) {
-	$buttons = [
-		[["text" => $lang_ul["game-hang"], "url" => "tg://resolve?domain=pp_hangman_bot"],
-		 ["text" => $lang_ul["game-rand"], "url" => "tg://resolve?domain=pp_random_bot"]],
-		[["text" => $lang_ul["game-rsp"], "url" => "tg://resolve?domain=pp_ropascis_bot"]],
-		[["text" => $lang_ul["game-bj"], "url" => "tg://resolve?domain=pp_blackjack_bot"],
-		 ["text" => $lang_ul["game-mines"], "url" => "tg://resolve?domain=pp_minesweeper_bot"]],
-		[["text" => $lang_ul["game-xo"], "url" => "tg://resolve?domain=pp_tictactoe_bot"],
-		 ["text" => $lang_ul["game-sea"], "url" => "tg://resolve?domain=pp_battleship_bot"]],
-		[["text" => $lang_ul["game-four"], "url" => "tg://resolve?domain=pp_fourinrow_bot"],
-		 ["text" => $lang_ul["game-15"], "url" => "tg://resolve?domain=pp_npuzzle_bot"]]
-	];
-	$inl_kbd = array_map(fn($row) => array_map(fn($button) => ["text" => $button["text"], 
-		"url" => $button["url"]], $row), $buttons);
-	return json_encode(["inline_keyboard" => $inl_kbd]);
-} ?>
+$inline_menus = ["game-bj" => [[["text" => "menu-more", "cb_data" => "cb-more"], ["text" => "menu-stop", "cb_data" => "cb-stop"]]],
+	"contact" => [[["text" => "contact-dev", "url" => "tg://resolve?domain=Stler"]], 
+		[["text" => "source-code", "url" => "https://github.com/JuliaSivridi/pikkupelit"]]],
+	"game_links" => [[["text" => "game-hang", "url" => "tg://resolve?domain=pp_hangman_bot"], 
+		["text" => "game-rand", "url" => "tg://resolve?domain=pp_random_bot"]],
+		[["text" => "game-rsp", "url" => "tg://resolve?domain=pp_ropascis_bot"]],
+		[["text" => "game-bj", "url" => "tg://resolve?domain=pp_blackjack_bot"], 
+		["text" => "game-mines", "url" => "tg://resolve?domain=pp_minesweeper_bot"]],
+		[["text" => "game-xo", "url" => "tg://resolve?domain=pp_tictactoe_bot"], 
+		["text" => "game-sea", "url" => "tg://resolve?domain=pp_battleship_bot"]],
+		[["text" => "game-four", "url" => "tg://resolve?domain=pp_fourinrow_bot"], 
+		["text" => "game-15", "url" => "tg://resolve?domain=pp_npuzzle_bot"]]]];
+ ?>

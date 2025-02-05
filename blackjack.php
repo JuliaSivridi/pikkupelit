@@ -43,8 +43,6 @@ $lang = json_decode(file_get_contents("languages.json"), true);
 $flags = ["en" => "🇬🇧", "ru" => "🇷🇺"];
 $menus = ["main" => [["menu-new", "menu-stat"], ["menu-hlp", "menu-links", "menu-set"]],
 	"set" => [["menu-lang"], ["main-back"]]];
-$inline_menus = ["game" => [[["text" => "menu-more", "cb_data" => "cb-more"],
-	["text" => "menu-stop", "cb_data" => "cb-stop"]]]];
 
 // 4 suits, from 2 to king & ace, no joker
 function getRandomCard($lang_ul) {
@@ -192,7 +190,7 @@ if (isset($input["callback_query"])) {
 			trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
 				"text" => writeGame($lang[$ul], $ccards, $ccost, $ucards, $ucost), 
 				"parse_mode" => "Markdown", 
-				"reply_markup" => draw_inline_menu($lang[$ul], "game")]);
+				"reply_markup" => draw_inline_menu($lang[$ul], "game-bj")]);
 		}
 	}
 
@@ -251,7 +249,7 @@ if (isset($input["callback_query"])) {
 					$answer = trequest("sendMessage", ["chat_id" => $chat_id, 
 						"text" => writeGame($lang[$ul], $ccards, $ccost, $ucards, $ucost), 
 						"parse_mode" => "Markdown", 
-						"reply_markup" => draw_inline_menu($lang[$ul], "game")]);
+						"reply_markup" => draw_inline_menu($lang[$ul], "game-bj")]);
 					$tresponse = json_decode($answer, true);
 					$msg_id = $tresponse["result"]["message_id"];
 					update_data($chat_id, ["msg_id" => $msg_id]);
@@ -272,7 +270,7 @@ if (isset($input["callback_query"])) {
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-bj"], 
-					"parse_mode" => "Markdown", "reply_markup" => contact_links($lang[$ul])]);
+					"parse_mode" => "Markdown", "reply_markup" => draw_inline_menu($lang[$ul], "contact")]);
 				break;
 			}
 
@@ -293,7 +291,7 @@ if (isset($input["callback_query"])) {
 			// main menu -> game links
 			case "/links": case $lang[$ul]["menu-links"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["game-links"], 
-					"reply_markup" => game_links($lang[$ul])]);
+					"reply_markup" => draw_inline_menu($lang[$ul], "game_links")]);
 				break;
 			}
 

@@ -58,18 +58,29 @@ function draw_inline_menu($lang_ul, $type) {
 	return json_encode(["inline_keyboard" => $inl_kbd]);
 }
 
-// bot links keyboard
-function game_links() {
+// contact links keyboard
+function contact_links($lang_ul) {
 	$buttons = [
-		[["text" => "😵 Hangman", "url" => "tg://resolve?domain=pp_hangman_bot"],
-		 ["text" => "🎲 Random", "url" => "tg://resolve?domain=pp_random_bot"]],
-		[["text" => "🪨📄✂️ Rock Paper Scissors", "url" => "tg://resolve?domain=pp_ropascis_bot"]],
-		[["text" => "🃏 Blackjack", "url" => "tg://resolve?domain=pp_blackjack_bot"],
-		 ["text" => "💣 Minesweeper", "url" => "tg://resolve?domain=pp_minesweeper_bot"]],
-		[["text" => "❌⭕️ TicTacToe", "url" => "tg://resolve?domain=pp_tictactoe_bot"],
-		 ["text" => "🚢 Battle Ship", "url" => "tg://resolve?domain=pp_battleship_bot"]],
-		[["text" => "🔴🟡 4 in row", "url" => "tg://resolve?domain=pp_fourinrow_bot"],
-		 ["text" => "🧩 Npuzzle", "url" => "tg://resolve?domain=pp_npuzzle_bot"]]
+		[["text" => $lang_ul["contact-dev"], "url" => "tg://resolve?domain=Stler"]],
+		[["text" => $lang_ul["source-code"], "url" => "https://github.com/JuliaSivridi/pikkupelit"]]
+	];
+	$inl_kbd = array_map(fn($row) => array_map(fn($button) => ["text" => $button["text"], 
+		"url" => $button["url"]], $row), $buttons);
+	return json_encode(["inline_keyboard" => $inl_kbd]);
+}
+
+// bot links keyboard
+function game_links($lang_ul) {
+	$buttons = [
+		[["text" => $lang_ul["game-hang"], "url" => "tg://resolve?domain=pp_hangman_bot"],
+		 ["text" => $lang_ul["game-rand"], "url" => "tg://resolve?domain=pp_random_bot"]],
+		[["text" => $lang_ul["game-rsp"], "url" => "tg://resolve?domain=pp_ropascis_bot"]],
+		[["text" => $lang_ul["game-bj"], "url" => "tg://resolve?domain=pp_blackjack_bot"],
+		 ["text" => $lang_ul["game-mines"], "url" => "tg://resolve?domain=pp_minesweeper_bot"]],
+		[["text" => $lang_ul["game-xo"], "url" => "tg://resolve?domain=pp_tictactoe_bot"],
+		 ["text" => $lang_ul["game-sea"], "url" => "tg://resolve?domain=pp_battleship_bot"]],
+		[["text" => $lang_ul["game-four"], "url" => "tg://resolve?domain=pp_fourinrow_bot"],
+		 ["text" => $lang_ul["game-15"], "url" => "tg://resolve?domain=pp_npuzzle_bot"]]
 	];
 	$inl_kbd = array_map(fn($row) => array_map(fn($button) => ["text" => $button["text"], 
 		"url" => $button["url"]], $row), $buttons);

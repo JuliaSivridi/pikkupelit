@@ -76,7 +76,8 @@ function drawDrop($board, $sign, $endr, $nowr, $nowc) {
 } // animate keyboard
 function makeDrop($board, $sign, $row, $col, $chat_id, $msg_id, $lang_ul, $isUser) {
 	global $symbols;
-	$text = $lang_ul["game-four"] ."\n".$symbols[$sign]
+	$text = $lang_ul["game-four"] 
+		."\n\n".$symbols[$sign]
 		." ".($isUser ? $lang_ul["turn-user"] : $lang_ul["turn-comp"]);
 	for ($r = 0; $r < $row; $r++) {
 		usleep(200000);
@@ -136,7 +137,8 @@ function processTurn($board, $sign, $col, $chat_id, $msg_id, $lang_ul, $isUser) 
 	} else { // game continues
 		makeDrop($board, $sign, $row, $col, $chat_id, $msg_id, $lang_ul, $isUser);
 		trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id, 
-			"text" => $lang_ul["game-four"] ."\n".$symbols[(($sign == 1) ? 2 : 1)]
+			"text" => $lang_ul["game-four"] 
+				."\n\n".$symbols[(($sign == 1) ? 2 : 1)]
 				." ".($isUser ? $lang_ul["turn-comp"] : $lang_ul["turn-user"]), 
 			"reply_markup" => drawBoard($board, ($isUser ? false : true), [[$row, $col]])]);
 		return ["board" => $board, "state" => $state, "game_over" => false];
@@ -283,7 +285,7 @@ if (isset($input["callback_query"])) {
 				// draw game keyboard
 				$answer = trequest("sendMessage", ["chat_id" => $chat_id, 
 					"text" => $lang[$ul]["game-four"] 
-					."\n".$symbols[$user_sign]." ".$lang[$ul]["turn-user"],
+					."\n\n".$symbols[$user_sign]." ".$lang[$ul]["turn-user"],
 					"reply_markup" => $gkbd]);
 				$tresponse = json_decode($answer, true);
 				$msg_id = $tresponse["result"]["message_id"];
@@ -304,9 +306,8 @@ if (isset($input["callback_query"])) {
 
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
-				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-four"]
-					.$lang[$ul]["contact"].$lang[$ul]["github"], 
-					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-four"],
+					"parse_mode" => "Markdown", "reply_markup" => contact_links($lang[$ul])]);
 				break;
 			}
 
@@ -327,7 +328,7 @@ if (isset($input["callback_query"])) {
 			// main menu -> game links
 			case "/links": case $lang[$ul]["menu-links"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["game-links"], 
-					"reply_markup" => game_links()]);
+					"reply_markup" => game_links($lang[$ul])]);
 				break;
 			}
 

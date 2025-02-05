@@ -271,9 +271,8 @@ if (isset($input["callback_query"])) {
 
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
-				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-bj"]
-					.$lang[$ul]["contact"].$lang[$ul]["github"], 
-					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-bj"], 
+					"parse_mode" => "Markdown", "reply_markup" => contact_links($lang[$ul])]);
 				break;
 			}
 
@@ -294,7 +293,7 @@ if (isset($input["callback_query"])) {
 			// main menu -> game links
 			case "/links": case $lang[$ul]["menu-links"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["game-links"], 
-					"reply_markup" => game_links()]);
+					"reply_markup" => game_links($lang[$ul])]);
 				break;
 			}
 

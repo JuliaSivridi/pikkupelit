@@ -116,7 +116,7 @@ function processTurn($board, $bsize, $sign, $pos, $chat_id, $msg_id, $lang_ul, $
 	} else { // game continues
 		trequest("editMessageText", ["chat_id" => $chat_id, "message_id" => $msg_id,
 			"text" => $lang_ul["game-xo"].$bsize."x".$bsize . $lang_ul["xo-win-need"].$winLength
-				."\n".$symbols[(($sign == PLAYER_X) ? PLAYER_O : PLAYER_X)]
+				."\n\n".$symbols[(($sign == PLAYER_X) ? PLAYER_O : PLAYER_X)]
 				." ".($isUser ? $lang_ul["turn-comp"] : $lang_ul["turn-user"]), 
 				"reply_markup" => drawBoard($board, ($isUser ? false : true), [[$x, $y]])]);
 		return ["board" => $board, "state" => $state, "game_over" => false];
@@ -297,7 +297,7 @@ if (isset($input["callback_query"])) {
 				$answer = trequest("sendMessage", ["chat_id" => $chat_id, 
 					"text" => $lang[$ul]["game-xo"].$bsize."x".$bsize 
 					.$lang[$ul]["xo-win-need"].$winLength 
-					."\n".$symbols[$user_sign]." ".$lang[$ul]["turn-user"], 
+					."\n\n".$symbols[$user_sign]." ".$lang[$ul]["turn-user"], 
 					"reply_markup" => drawBoard($board, true)]);
 				$tresponse = json_decode($answer, true);
 				$msg_id = $tresponse["result"]["message_id"];
@@ -318,9 +318,8 @@ if (isset($input["callback_query"])) {
 
 			// main menu -> help
 			case "/help": case $lang[$ul]["menu-hlp"]: {
-				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-xo"]
-					.$lang[$ul]["contact"].$lang[$ul]["github"], 
-					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
+				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-xo"],
+					"parse_mode" => "Markdown", "reply_markup" => contact_links($lang[$ul])]);
 				break;
 			}
 
@@ -341,7 +340,7 @@ if (isset($input["callback_query"])) {
 			// main menu -> game links
 			case "/links": case $lang[$ul]["menu-links"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["game-links"], 
-					"reply_markup" => game_links()]);
+					"reply_markup" => game_links($lang[$ul])]);
 				break;
 			}
 

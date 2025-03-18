@@ -51,6 +51,7 @@ $input = json_decode($content, TRUE);
 // user send msg
 if (isset($input["message"])) {
 	$chat_id = $input["message"]["chat"]["id"];
+	$chat_type = $input["message"]["chat"]["type"] ?? "private";
 	$result_usr = select_data($chat_id);
 	// user new -> insert to db
 	if (mysqli_num_rows($result_usr) <= 0) {
@@ -61,8 +62,10 @@ if (isset($input["message"])) {
 		$user_name = $fn." ".$ln;
 		$stmt = $dblink->prepare("INSERT INTO ".$tbname." (chat_id, user_lang, user_name) VALUES (?, ?, ?)");
 		$stmt->bind_param("sss", $chat_id, $ul, $user_name); $stmt->execute(); $stmt->close();
-		trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"], 
-			"reply_markup" => draw_menu($lang[$ul], "main")]);
+		trequest("sendMessage", ["chat_id" => $chat_id, 
+			"text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"]
+				.$lang[$ul]["cmd-hl"], 
+			"reply_markup" => draw_menu($lang[$ul], "main", $chat_type)]);
 
 	// user exists
 	} else {
@@ -80,7 +83,7 @@ if (isset($input["message"])) {
 				$rsp = [$lang[$ul]["rsp-stone"], $lang[$ul]["rsp-scissors"], $lang[$ul]["rsp-paper"]];
 				$bot_msg = $rsp[array_rand($rsp, 1)]; // bot random choice
 				$answer = ["chat_id" => $chat_id, "text" => $lang[$ul]["rsp-comp"].$bot_msg."\n\n", 
-					"reply_markup" => draw_menu($lang[$ul], "main")];
+					"reply_markup" => draw_menu($lang[$ul], "main", $chat_type)];
 				if ($bot_msg == $user_msg) {
 					$sdraw++;
 					$answer["text"] .= $lang[$ul]["game-draw"];
@@ -103,53 +106,55 @@ if (isset($input["message"])) {
 			}
 
 			// main menu -> stat
-			case "/stat": case $lang[$ul]["menu-stat"]: {
+			case "/stat": case "/stat@pp_ropascis_bot": case $lang[$ul]["menu-stat"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["stat-ttl"]
 					."`".$lang[$ul]["stat-all"].str_pad((string)($row["statwin"]+$row["statlose"]+$row["statdraw"]), (20 - mb_strlen($lang[$ul]["stat-all"])), " ", STR_PAD_LEFT)."`"
 					."`".$lang[$ul]["stat-win"].str_pad((string)($row["statwin"]), (20 - mb_strlen($lang[$ul]["stat-win"])), " ", STR_PAD_LEFT)."`"
 					."`".$lang[$ul]["stat-lose"].str_pad((string)($row["statlose"]), (20 - mb_strlen($lang[$ul]["stat-lose"])), " ", STR_PAD_LEFT)."`"
 					."`".$lang[$ul]["stat-draw"].str_pad((string)($row["statdraw"]), (21 - mb_strlen($lang[$ul]["stat-draw"])), " ", STR_PAD_LEFT)."`", 
-					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main")]);
+					"parse_mode" => "Markdown", "reply_markup" => draw_menu($lang[$ul], "main", $chat_type)]);
 				break;
 			}
 
 			// main menu -> help
-			case "/help": case $lang[$ul]["menu-hlp"]: {
+			case "/help": case "/help@pp_ropascis_bot": case $lang[$ul]["menu-hlp"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["help-rsp"],
 					"parse_mode" => "Markdown", "reply_markup" => draw_inline_menu($lang[$ul], "contact")]);
 				break;
 			}
 
 			// basic functionality {
-			case "/start": {
-				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"], 
-					"reply_markup" => draw_menu($lang[$ul], "main")]);
+			case "/start": case "/start@pp_ropascis_bot": {
+				trequest("sendMessage", ["chat_id" => $chat_id, 
+					"text" => $lang[$ul]["hi1"].$input["message"]["from"]["first_name"].$lang[$ul]["hi2"]
+						.$lang[$ul]["cmd-hl"], 
+					"reply_markup" => draw_menu($lang[$ul], "main", $chat_type)]);
 				break;
 			}
 
 			// main menu
-			case "/main": case $lang[$ul]["main-back"]: {
+			case "/main": case "/main@pp_ropascis_bot": case $lang[$ul]["main-back"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["main-ttl"], 
-					"reply_markup" => draw_menu($lang[$ul], "main")]);
+					"reply_markup" => draw_menu($lang[$ul], "main", $chat_type)]);
 				break;
 			}
 
 			// main menu -> game links
-			case "/links": case $lang[$ul]["menu-links"]: {
+			case "/links": case "/links@pp_ropascis_bot": case $lang[$ul]["menu-links"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["game-links"], 
 					"reply_markup" => draw_inline_menu($lang[$ul], "game_links")]);
 				break;
 			}
 
 			// main menu -> settings
-			case "/settings": case $lang[$ul]["menu-set"]: case $lang[$ul]["set-back"]: {
+			case "/settings": case "/settings@pp_ropascis_bot": case $lang[$ul]["menu-set"]: case $lang[$ul]["set-back"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["set-ttl"], 
-					"reply_markup" => draw_menu($lang[$ul], "set")]);
+					"reply_markup" => draw_menu($lang[$ul], "set", $chat_type)]);
 				break;
 			}
 
 			// settings menu -> language ask
-			case "/lang": case $lang[$ul]["menu-lang"]: {
+			case "/lang": case "/lang@pp_ropascis_bot": case $lang[$ul]["menu-lang"]: {
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["lang-ask"],
 					"reply_markup" => json_encode(["keyboard" => [$flag_lang, [$lang[$ul]["set-back"]]], "resize_keyboard" => true])]);
 				break;
@@ -161,13 +166,13 @@ if (isset($input["message"])) {
 					$ul = $lang_code;
 					update_data($chat_id, ["user_lang" => $ul]);
 					trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["lang-ok"],
-						"reply_markup" => draw_menu($lang[$ul], "main")]);
+						"reply_markup" => draw_menu($lang[$ul], "main", $chat_type)]);
 				} break;
 			}
 
 			default:
 				trequest("sendMessage", ["chat_id" => $chat_id, "text" => $lang[$ul]["default"], 
-					"reply_markup" => draw_menu($lang[$ul], "main")]);
+					"reply_markup" => draw_menu($lang[$ul], "main", $chat_type)]);
 			// basic functionality }
 		}
 	} mysqli_free_result($result_usr);

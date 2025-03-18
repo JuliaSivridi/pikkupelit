@@ -46,8 +46,10 @@ function update_data($chat_id, $data) {
 }
 
 // menu keyboard
-function draw_menu($lang_ul, $type) {
-	global $menus; $menu = $menus[$type] ?? [];
+function draw_menu($lang_ul, $type, $chat_type) {
+	global $menus;
+	if ($chat_type !== "private") return json_encode(["remove_keyboard" => true]);
+	$menu = $menus[$type] ?? [];
 	$mkbd = array_map(fn($row) => array_map(fn($key) => $lang_ul[$key], $row), $menu);
 	return json_encode(["keyboard" => $mkbd, "resize_keyboard" => true]);
 } // inline keyboard

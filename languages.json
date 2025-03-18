@@ -1,6 +1,7 @@
 {
   "en": {
-    "hi1": "Hello, ", "hi2": " 😋", 
+    "hi1": "Hello, ", "hi2": " 😋\nCommands:", "cmd-hl": "\n/help - how to play?\n/lang - change language", 
+    "cmd-new": "\n/game - start new game", "cmd-rnd": "\n/coin /card /rand - start new game", 
     "main-back": "🔙 Main menu", "main-ttl": "🩶 Main menu", 
     "menu-stat": "📊 Statistics", "stat-ttl": "📊 Statistics", "stat-all": "\n🕹 Games played: ", "stat-win": "\n🥇 Win: ", "stat-lose": "\n💀 Lose: ", "stat-draw": "\n⚖️ Draw: ", 
     "menu-hlp": "ℹ️ Help", "help": "ℹ️ There could be some help here", 
@@ -50,7 +51,8 @@
     "default": "👻 IDK, what to say..."
   },
   "ru": {
-    "hi1": "Привет, ", "hi2": " 😋",
+    "hi1": "Привет, ", "hi2": " 😋\nКоманды:", "cmd-hl": "\n/help - как играть?\n/lang - смена языка", 
+    "cmd-new": "\n/game - новая игра", "cmd-rnd": "\n/coin /card /rand - новая игра", 
     "main-back": "🔙 Главное меню", "main-ttl": "🩶 Главное меню", 
     "menu-stat": "📊 Статистика", "stat-ttl": "📊 Статистика", "stat-all": "\n🕹 Игр сыграно: ", "stat-win": "\n🥇 Побед: ", "stat-lose": "\n💀 Поражений: ", "stat-draw": "\n⚖️ Ничьих: ", 
     "menu-hlp": "ℹ️ Помощь", "help": "ℹ️ Тут могла бы быть справка", 
